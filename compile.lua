@@ -1,7 +1,7 @@
-local lex_setup = require('lang.lexer')
-local parse = require('lang.parser')
-local ast = require('lang.lua-ast').New()
-local reader = require('lang.reader')
+local lex_setup = require('sci-lang.lexer')
+local parse = require('sci-lang.parser')
+local ast = require('sci-lang.lua-ast').New()
+local reader = require('sci-lang.reader')
 
 -- Two kind of backend can be used to generate the code from the AST:
 -- - "generator", generates LuaJIT bytecode
@@ -24,9 +24,9 @@ end
 local function compile(reader, filename, options)
     local generator
     if options and options.code then
-        generator = require('lang.luacode-generator')
+        generator = require('sci-lang.luacode-generator')
     else
-        generator = require('lang.generator')
+        generator = require('sci-lang.generator')
     end
     local ls = lex_setup(reader, filename)
     local parse_success, tree = pcall(parse, ast, ls)

@@ -34,7 +34,7 @@ while args[k] do
             else
                 table.remove(args, j)
             end
-            require("lang.bcsave").start(unpack(args))
+            require("sci-lang.bcsave").start(unpack(args))
             os.exit(0)
         elseif string.sub(a, 2, 2) == "c" then
             opt.code = true
@@ -59,7 +59,7 @@ end
 
 if not filename then usage() end
 
-local compile = require("lang.compile")
+local compile = require("sci-lang.compile")
 
 -- Compute the bytecode string for the given filename.
 local luacode = check(compile.file(filename, opt))

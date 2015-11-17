@@ -9,9 +9,9 @@
 -- See Copyright Notice in LICENSE
 --
 
-local bc = require('lang.bytecode')
-local const_eval = require("lang.ast-const-eval")
-local boolean_const_eval = require("lang.ast-boolean-const-eval")
+local bc = require('sci-lang.bytecode')
+local const_eval = require("sci-lang.ast-const-eval")
+local boolean_const_eval = require("sci-lang.ast-boolean-const-eval")
 
 local ID = 0
 local function genid()
