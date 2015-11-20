@@ -2,6 +2,7 @@ local lex_setup = require('sci-lang.lexer')
 local parse = require('sci-lang.parser')
 local ast = require('sci-lang.lua-ast').New()
 local reader = require('sci-lang.reader')
+local transform = require ('sci-lang.transform')
 
 -- Two kind of backend can be used to generate the code from the AST:
 -- - "generator", generates LuaJIT bytecode
@@ -33,7 +34,9 @@ local function compile(reader, filename, options)
     if not parse_success then
         return lang_toolkit_error(tree)
     end
-    local success, luacode = pcall(generator, tree, filename)
+    local ttree = transform.root(tree)
+    ttree = ttree or tree -- If nothing is returned, it's in-place transform.
+    local success, luacode = pcall(generator, ttree, filename)
     if not success then
         return lang_toolkit_error(luacode)
     end
