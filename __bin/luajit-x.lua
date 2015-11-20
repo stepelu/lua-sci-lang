@@ -1,3 +1,7 @@
+
+-- Set JIT default optimizations for sci.
+jit.opt.start('callunroll=10', 'loopunroll=30')
+
 local function usage()
   io.stderr:write[[
 LuaJIT Language Toolkit usage: luajit [options]... [script [args]...].
