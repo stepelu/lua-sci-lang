@@ -4,6 +4,16 @@ local LJ_52 = false
 
 local EndOfBlock = { TK_else = true, TK_elseif = true, TK_end = true, TK_until = true, TK_eof = true }
 
+local is_algebra_map = {
+    BinaryAlgebraExpression = true,
+    UnaryAlgebraExpression  = true,
+    IndexAlgebraExpression  = true,
+}
+
+local function is_algebra(node)
+    return is_algebra_map[node.kind]
+end
+
 local function err_syntax(ls, em)
   ls:error(ls.token, em)
 end
@@ -64,10 +74,15 @@ local function expr_field(ast, ls, v)
     return ast:expr_property(v, key)
 end
 
-local function expr_bracket(ast, ls)
+local function expr_bracket(ast, ls, accept_empty)
     ls:next() -- Skip '['.
-    local v = expr(ast, ls)
-    lex_check(ls, ']')
+    local v 
+    if accept_empty and lex_opt(ls, ']') then
+        v = nil
+    else
+        v = expr(ast, ls)
+        lex_check(ls, ']')
+    end
     return v
 end
 
@@ -142,10 +157,21 @@ function expr_unop(ast, ls)
     if tk == 'TK_not' or tk == '-' or tk == '#' then
         local line = ls.linenumber
         ls:next()
-        local v = expr_binop(ast, ls, operator.unary_priority)
-        return ast:expr_unop(ls.token2str(tk), v, line)
+        local op = ls.token2str(tk)
+        local v = expr_binop(ast, ls, operator.unary_priority(op))
+        if is_algebra(v) then
+            assert(op == '-', 'not yet implemented')
+            return ast:expr_algebra_unop(op, v, line)
+        else
+            return ast:expr_unop(op, v, line)
+        end
     else
-        return expr_simple(ast, ls)
+        local exp = expr_simple(ast, ls)
+        if lex_opt(ls, '`') then
+            local line = ls.linenumber
+            exp = ast:expr_algebra_unop('`', exp, line)
+        end
+        return exp
     end
 end
 
@@ -157,7 +183,11 @@ function expr_binop(ast, ls, limit)
         local line = ls.linenumber
         ls:next()
         local v2, nextop = expr_binop(ast, ls, operator.right_priority(op))
-        v = ast:expr_binop(op, v, v2, line)
+        if is_algebra(v) or is_algebra(v2) then
+            v = ast:expr_algebra_binop(op, v, v2, line)
+        else
+            v = ast:expr_binop(op, v, v2, line)
+        end
         op = nextop
     end
     return v, op
@@ -186,8 +216,12 @@ function expr_primary(ast, ls)
         if ls.token == '.' then
             vk, v = 'indexed', expr_field(ast, ls, v)
         elseif ls.token == '[' then
-            local key = expr_bracket(ast, ls)
-            vk, v = 'indexed', ast:expr_index(v, key)
+            local key = expr_bracket(ast, ls, true)
+            if key then
+                vk, v = 'indexed', ast:expr_index(v, key)
+            else
+                vk, v = 'indexed', ast:expr_algebra_index(v)
+            end
         elseif ls.token == ':' then
             ls:next()
             local key = lex_str(ls)
@@ -316,7 +350,16 @@ local function parse_assignment(ast, ls, vlist, var, vk)
     else -- Parse RHS.
         lex_check(ls, '=')
         local exps = expr_list(ast, ls)
-        return ast:assignment_expr(vlist, exps, line)
+        local algebra = false
+        for i=1,#vlist do
+            algebra = algebra or is_algebra(vlist[i])
+        end
+        if algebra then
+            assert(#vlist == 1, 'not yet implemented')
+            return ast:assignment_algebra_expr(vlist, exps, line)
+        else
+            return ast:assignment_expr(vlist, exps, line)
+        end
     end
 end
 

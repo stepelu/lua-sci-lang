@@ -60,8 +60,16 @@ function AST.assignment_expr(ast, vars, exps, line)
     return build("AssignmentExpression", { left = vars, right = exps, line = line })
 end
 
+function AST.assignment_algebra_expr(ast, vars, exps, line)
+    return build("AssignmentAlgebraExpression", { left = vars, right = exps, line = line })
+end
+
 function AST.expr_index(ast, v, index, line)
     return build("MemberExpression", { object = v, property = index, computed = true, line = line })
+end
+
+function AST.expr_algebra_index(ast, v, line)
+    return build("IndexAlgebraExpression", { object = v, line = line })
 end
 
 function AST.expr_property(ast, v, prop, line)
@@ -99,6 +107,10 @@ function AST.expr_unop(ast, op, v, line)
     return build("UnaryExpression", { operator = op, argument = v, line = line })
 end
 
+function AST.expr_algebra_unop(ast, op, v, line)
+    return build("UnaryAlgebraExpression", { operator = op, argument = v, line = line })
+end
+
 local function concat_append(ts, node)
     local n = #ts
     if node.kind == "ConcatenateExpression" then
@@ -121,6 +133,19 @@ function AST.expr_binop(ast, op, expa, expb, line)
         concat_append(terms, expa)
         concat_append(terms, expb)
         return build("ConcatenateExpression", { terms = terms, line = expa.line })
+    end
+end
+
+function AST.expr_algebra_binop(ast, op, expa, expb, line)
+    local binop_body = (op ~= '..' and { operator = op, left = expa, right = expb, line = line })
+    if binop_body then
+        if op == 'and' or op == 'or' then
+            error('not yet implemented')
+        else
+            return build("BinaryAlgebraExpression", binop_body)
+        end
+    else
+        error('not yet implemented')
     end
 end
 
