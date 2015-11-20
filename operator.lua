@@ -7,9 +7,20 @@ local binop = {
     ['=='] = 3 * 256 + 3, ['~='] = 3 * 256 + 3,
     ['<']  = 3 * 256 + 3, ['>='] = 3 * 256 + 3, ['>'] = 3 * 256 + 3, ['<='] = 3 * 256 + 3,
     ['and']= 2 * 256 + 2, ['or'] = 1 * 256 + 1,
+    ['**'] = 10* 256 + 10,
+    ['^^'] = 12* 256 + 11, -- right associative
 }
 
-local unary_priority = 8
+local unaop = {
+    ['#']   = 8,
+    ['-']   = 8,
+    ['not'] = 8,
+    ['`']   = 13, -- highest
+}
+
+local function unary_priority(op)
+    return unaop[op]
+end
 
 -- Pseudo priority of a simple identifier. Should be higher than any
 -- others operator's priority.
