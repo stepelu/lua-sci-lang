@@ -85,6 +85,22 @@ local syntax = {
          right = "Expression",
       }
    },
+   BinaryAlgebraExpression = {
+      kind = "BinaryAlgebraExpression",
+      base = "BinaryExpression",
+      properties = {
+         operator = {
+            type   = "enum",
+            values = {
+               "+", "-", "*", "/", "^", "%",
+               "==", "~=", ">=", ">", "<=", "<",
+               "**", "^^",
+            }
+         },
+         left = "Expression",
+         right = "Expression",
+      }
+   },
    ConcatenateExpression = {
       kind = "ConcatenateExpression",
       base = "Expression",
@@ -106,6 +122,17 @@ local syntax = {
          argument = "Expression",
       }
    },
+   UnaryAlgebraExpression = {
+      kind = "UnaryAlgebraExpression",
+      base = "UnaryExpression",
+      properties = {
+         operator = {
+            type   = "enum",
+            values = { "not", "-", "#", "`" },
+         },
+         argument = "Expression",
+      }
+   },
    ExpressionValue = {
       kind = "ExpressionValue",
       base = "Expression",
@@ -116,6 +143,20 @@ local syntax = {
    AssignmentExpression = {
       kind = "AssignmentExpression",
       base = "Statement",
+      properties = {
+         left = {
+            type = "list",
+            kind = { type = "choice", values = { "MemberExpression", "Identifier" } },
+         },
+         right = {
+            type = "list",
+            kind = "Expression",
+         }
+      }
+   },
+   AssignmentAlgebraExpression = {
+      kind = "AssignmentAlgebraExpression",
+      base = "AssignmentExpression",
       properties = {
          left = {
             type = "list",
@@ -150,6 +191,13 @@ local syntax = {
             value = "boolean",
             default = false
          },
+      }
+   },
+   IndexAlgebraExpression = {
+      kind = "IndexAlgebraExpression",
+      base = "MemberExpression",
+      properties = {
+         object = "Expression",
       }
    },
    CallExpression = {
